@@ -21,7 +21,8 @@ module.exports = async (req, res) => {
   const cleanApiKey = keyMatch ? keyMatch[0] : apiKey.trim().replace(/^["']|["']$/g, '');
 
   try {
-    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+    // Switched to specific gemini-2.5-flash model to avoid high-demand 503 errors on the latest alias
+    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
     const response = await fetch(geminiUrl, {
       method: 'POST',
       headers: {

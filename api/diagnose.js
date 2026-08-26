@@ -12,7 +12,28 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { imageBase64, mimeType } = req.body || {};
+  // Robust Body Parser
+  let body = req.body;
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body);
+    } catch (e) {
+      console.error('Failed to parse body as string:', e);
+    }
+  } else if (!body || Object.keys(body).length === 0) {
+    try {
+      const buffers = [];
+      for await (const chunk of req) {
+        buffers.push(chunk);
+      }
+      const rawBody = Buffer.concat(buffers).toString();
+      body = JSON.parse(rawBody);
+    } catch (e) {
+      console.error('Failed to read and parse body from stream:', e);
+    }
+  }
+
+  const { imageBase64, mimeType } = body || {};
 
   if (!imageBase64 || !mimeType) {
     return res.status(400).json({ error: 'Missing imageBase64 or mimeType' });
@@ -23,12 +44,12 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Server error: GEMINI_API_KEY environment variable is not set on Vercel.' });
   }
 
-  // Ultra-robust API Key extractor: find the actual Google API key starting with AIzaSy
-  const keyMatch = apiKey.match(/AIzaSy[A-Za-z0-9_-]+/);
-  const cleanApiKey = keyMatch ? keyMatch[0] : apiKey.trim().replace(/^["']|["']$/g, '');
+  // Clean the API Key (remove quotes, spaces, newlines)
+  const cleanApiKey = apiKey.trim().replace(/^["']|["']$/g, '');
 
   try {
-    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+    // Switched to specific gemini-2.5-flash model to avoid high-demand 503 errors on the latest alias
+    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
     const requestBody = {
       contents: [
