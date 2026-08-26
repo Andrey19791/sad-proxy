@@ -23,8 +23,9 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Server error: GEMINI_API_KEY environment variable is not set on Vercel.' });
   }
 
-  // Clean the API Key (remove quotes, spaces, newlines)
-  const cleanApiKey = apiKey.trim().replace(/^["']|["']$/g, '');
+  // Ultra-robust API Key extractor: find the actual Google API key starting with AIzaSy
+  const keyMatch = apiKey.match(/AIzaSy[A-Za-z0-9_-]+/);
+  const cleanApiKey = keyMatch ? keyMatch[0] : apiKey.trim().replace(/^["']|["']$/g, '');
 
   try {
     const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
