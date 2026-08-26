@@ -23,15 +23,18 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Server error: GEMINI_API_KEY environment variable is not set on Vercel.' });
   }
 
+  // Clean the API Key (remove quotes, spaces, newlines)
+  const cleanApiKey = apiKey.trim().replace(/^["']|["']$/g, '');
+
   try {
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
+    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
 
     const requestBody = {
       contents: [
         {
           parts: [
             {
-              text: "Identify this plant and analyze its health. Respond in Ukrainian language. You MUST return ONLY a valid JSON object matching the following structure (do not wrap in markdown tags like ```json, do not write other explanation, do not write any pre-amble or post-amble):\n{\n  \"plantName\": \"Назва рослини українською (наприклад, Перець Болгарський)\",\n  \"species\": \"Ботанічна назва латиною (наприклад, Capsicum annuum)\",\n  \"healthStatus\": \"Статус здоров'я (наприклад: Пожовтіння листя, Всихання кінчиків, Здорова рослина тощо)\",\n  \"confidence\": 92,\n  \"diagnosis\": \"Аналіз симптомів та можливих причин чому так відбувається\",\n  \"watering\": \"Рекомендації щодо поливу у такому стані\",\n  \"lighting\": \"Рекомендації щодо освітлення\",\n  \"temperature\": \"Рекомендації щодо температурного режиму та вентиляції\",\n  \"soil\": \"Рекомендації щодо структури ґрунту або пересадки\",\n  \"fertilizers\": \"Рекомендації щодо внесення мікроелементів чи добрив\"\n}"
+              text: "Identify this plant and analyze its health. Respond in Ukrainian language. You MUST return ONLY a valid JSON object matching the following structure (do not wrap in markdown tags like ```json, do not write other explanation, do not write any pre-amble or post-amble):\n{\n  \"plantName\": \"Назва рослини українською (наприклад, Перець Болгарський)\",\n  \"species\": \"Ботанічна назва латиною (наприклад, Capsicum annuum)\",\n  \"healthStatus\": \"Статус здоров'я (наприклад: Пожовтіння листя, Всихання кінчиків, Здорова рослина тощо)\",\n  \"confidence\": 92,\n  \"diagnosis\": \"Аналіз симптомів та можливих причин чому так відбувається\",\n  \"watering\": \"Рекомендації щодо поливу у такому стані\",\n  \"lighting\": \"Рекомендації щодо освітлення\",\n  \"temperature\": \"Рекомендації щодо температурного режиму та вентиляції\",\n  \"soil\": \"Рекомендації щодо структури ґрукту або пересадки\",\n  \"fertilizers\": \"Рекомендації щодо внесення мікроелементів чи добрив\"\n}"
             },
             {
               inlineData: {
@@ -50,7 +53,8 @@ module.exports = async (req, res) => {
     const response = await fetch(geminiUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-goog-api-key': cleanApiKey
       },
       body: JSON.stringify(requestBody)
     });

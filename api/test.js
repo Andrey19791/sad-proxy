@@ -16,12 +16,16 @@ module.exports = async (req, res) => {
     });
   }
 
+  // Clean the API Key (remove quotes, spaces, newlines)
+  const cleanApiKey = apiKey.trim().replace(/^["']|["']$/g, '');
+
   try {
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`;
+    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
     const response = await fetch(geminiUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-goog-api-key': cleanApiKey
       },
       body: JSON.stringify({
         contents: [{ parts: [{ text: "Hello! Respond with short OK." }] }]
