@@ -33,7 +33,8 @@ module.exports = async (req, res) => {
     }
   }
 
-  const { imageBase64, imagesBase64, mimeType } = body || {};
+  const { imageBase64, imagesBase64, mimeType, language } = body || {};
+  const targetLanguage = language || 'Ukrainian';
 
   if ((!imageBase64 && (!imagesBase64 || !Array.isArray(imagesBase64) || imagesBase64.length === 0)) || !mimeType) {
     return res.status(400).json({ error: 'Missing imageBase64 or imagesBase64 or mimeType' });
@@ -53,7 +54,44 @@ module.exports = async (req, res) => {
 
     const parts = [
       {
-        text: "Analyze these plant images (which may include a photo of the whole plant, a close-up of a leaf, and a close-up of a stem/flower). Identify the most likely plant species, determine the plant's health status, and calculate the identification probability percentage for the top candidates. Respond in Ukrainian language. You MUST return ONLY a valid JSON object matching the following structure (do not wrap in markdown tags like ```json, do not write other explanation, do not write any pre-amble or post-amble):\n{\n  \"plantName\": \"Назва найбільш ймовірної рослини українською (наприклад, Монстера Деліціоза)\",\n  \"species\": \"Ботанічна назва латиною (наприклад, Monstera deliciosa)\",\n  \"probabilities\": [\n    { \"name\": \"Monstera deliciosa\", \"percentage\": 94 },\n    { \"name\": \"Monstera adansonii\", \"percentage\": 4 },\n    { \"name\": \"Інше\", \"percentage\": 2 }\n  ],\n  \"healthStatus\": \"Статус здоров'я (наприклад: Пожовтіння листя, Всихання кінчиків, Здорова рослина тощо)\",\n  \"confidence\": 92,\n  \"diagnosis\": \"Аналіз симптомів та можливих причин чому так відбувається\",\n  \"watering\": \"Рекомендації щодо поливу у такому стані\",\n  \"lighting\": \"Рекомендації щодо освітлення\",\n  \"temperature\": \"Рекомендації щодо температурного режиму та вентиляції\",\n  \"soil\": \"Рекомендації щодо структури ґрунту або пересадки\",\n  \"fertilizers\": \"Рекомендації щодо внесення мікроелементів чи добрив\"\n}"
+        text: `Analyze these plant images (which may include a photo of the whole plant, a close-up of a leaf, and a close-up of a stem/flower). Identify the most likely plant species, calculate recognition probabilities, analyze plant health state (choose between: 'healthy', 'warning', 'danger'), outline noticed symptoms, configure quick care parameters, provide a concrete immediate task to do today, and supply detailed descriptions for tabs. Respond in ${targetLanguage} language. You MUST return ONLY a valid JSON object matching the following structure (do not wrap in markdown tags like \`\`\`json, do not write other explanation, do not write any pre-amble or post-amble):
+{
+  "plantName": "Plant name in ${targetLanguage} (e.g. Monstera Deliciosa)",
+  "species": "Botanical name in Latin (e.g. Monstera deliciosa)",
+  "probabilities": [
+    { "name": "Monstera deliciosa", "percentage": 94 },
+    { "name": "Monstera adansonii", "percentage": 4 },
+    { "name": "Other", "percentage": 2 }
+  ],
+  "healthStatus": "Short health status description in ${targetLanguage}",
+  "healthStatusType": "One of: healthy, warning, danger",
+  "primaryIssue": "Primary diagnosed issue and confidence in ${targetLanguage}",
+  "symptoms": [
+    "symptom 1 in ${targetLanguage}",
+    "symptom 2 in ${targetLanguage}"
+  ],
+  "quickCare": {
+    "light": "Light requirement in ${targetLanguage}",
+    "watering": "Watering requirement in ${targetLanguage}",
+    "temperature": "Temperature range (e.g. 18–28°C)",
+    "humidity": "Humidity range (e.g. 50–70%)",
+    "difficulty": "Care difficulty in ${targetLanguage}"
+  },
+  "todayTask": "Immediate care recommendation for today in ${targetLanguage}",
+  "confidence": 92,
+  "diagnosis": "Analysis of symptoms and possible causes in ${targetLanguage}",
+  "watering": "Watering advice in ${targetLanguage}",
+  "lighting": "Lighting advice in ${targetLanguage}",
+  "temperature": "Temperature advice in ${targetLanguage}",
+  "soil": "Soil advice in ${targetLanguage}",
+  "fertilizers": "Fertilizer advice in ${targetLanguage}",
+  "tabCare": "Detailed care tab content in ${targetLanguage} (remind the user to guide on soil moisture, not strict calendar)",
+  "tabDiseases": "Detailed disease tab content in ${targetLanguage}",
+  "tabWatering": "Detailed watering tab content in ${targetLanguage}",
+  "tabLighting": "Detailed lighting tab content in ${targetLanguage}",
+  "tabSoil": "Detailed soil tab content in ${targetLanguage}",
+  "tabFertilizers": "Detailed fertilizers tab content in ${targetLanguage}"
+}`
       }
     ];
 
