@@ -20,6 +20,7 @@ module.exports = async (req, res) => {
   const keyMatch = apiKey.match(/AIzaSy[A-Za-z0-9_-]+/);
   const cleanApiKey = keyMatch ? keyMatch[0] : apiKey.trim().replace(/^["']|["']$/g, '');
 
+  try {
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${cleanApiKey}`;
     const response = await fetch(geminiUrl);
 
