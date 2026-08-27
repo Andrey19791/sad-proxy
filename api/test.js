@@ -20,8 +20,13 @@ module.exports = async (req, res) => {
   const keyMatch = apiKey.match(/AIzaSy[A-Za-z0-9_-]+/);
   const cleanApiKey = keyMatch ? keyMatch[0] : apiKey.trim().replace(/^["']|["']$/g, '');
 
+  const urlParts = req.url.split('?');
+  const urlParams = new URLSearchParams(urlParts.length > 1 ? urlParts[1] : '');
+  const modelName = urlParams.get('model') || 'gemini-3.6-flash';
+
   try {
-    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
+    const startTime = Date.now();
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
     const response = await fetch(geminiUrl, {
       method: 'POST',
       headers: {
@@ -33,15 +38,21 @@ module.exports = async (req, res) => {
       })
     });
 
+    const latency = Date.now() - startTime;
+
     if (response.ok) {
       return res.status(200).json({
         status: "success",
-        message: "Proxy connected to Gemini 3.6 Flash successfully!"
+        model: modelName,
+        latencyMs: latency,
+        message: `Proxy connected to ${modelName} successfully!`
       });
     } else {
       const errorText = await response.text();
       return res.status(400).json({
         status: "error",
+        model: modelName,
+        latencyMs: latency,
         message: `Gemini API returned error: ${errorText}`
       });
     }
