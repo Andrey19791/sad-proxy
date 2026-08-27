@@ -33,10 +33,10 @@ module.exports = async (req, res) => {
     }
   }
 
-  const { imageBase64, mimeType } = body || {};
+  const { imageBase64, imagesBase64, mimeType } = body || {};
 
-  if (!imageBase64 || !mimeType) {
-    return res.status(400).json({ error: 'Missing imageBase64 or mimeType' });
+  if ((!imageBase64 && (!imagesBase64 || !Array.isArray(imagesBase64) || imagesBase64.length === 0)) || !mimeType) {
+    return res.status(400).json({ error: 'Missing imageBase64 or imagesBase64 or mimeType' });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
@@ -51,20 +51,36 @@ module.exports = async (req, res) => {
     // Switched to gemini-3.6-flash as suggested by Google for new projects to avoid 404 deprecation errors
     const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
 
+    const parts = [
+      {
+        text: "Analyze these plant images (which may include a photo of the whole plant, a close-up of a leaf, and a close-up of a stem/flower). Identify the most likely plant species, determine the plant's health status, and calculate the identification probability percentage for the top candidates. Respond in Ukrainian language. You MUST return ONLY a valid JSON object matching the following structure (do not wrap in markdown tags like ```json, do not write other explanation, do not write any pre-amble or post-amble):\n{\n  \"plantName\": \"Назва найбільш ймовірної рослини українською (наприклад, Монстера Деліціоза)\",\n  \"species\": \"Ботанічна назва латиною (наприклад, Monstera deliciosa)\",\n  \"probabilities\": [\n    { \"name\": \"Monstera deliciosa\", \"percentage\": 94 },\n    { \"name\": \"Monstera adansonii\", \"percentage\": 4 },\n    { \"name\": \"Інше\", \"percentage\": 2 }\n  ],\n  \"healthStatus\": \"Статус здоров'я (наприклад: Пожовтіння листя, Всихання кінчиків, Здорова рослина тощо)\",\n  \"confidence\": 92,\n  \"diagnosis\": \"Аналіз симптомів та можливих причин чому так відбувається\",\n  \"watering\": \"Рекомендації щодо поливу у такому стані\",\n  \"lighting\": \"Рекомендації щодо освітлення\",\n  \"temperature\": \"Рекомендації щодо температурного режиму та вентиляції\",\n  \"soil\": \"Рекомендації щодо структури ґрунту або пересадки\",\n  \"fertilizers\": \"Рекомендації щодо внесення мікроелементів чи добрив\"\n}"
+      }
+    ];
+
+    if (imagesBase64 && Array.isArray(imagesBase64)) {
+      imagesBase64.forEach(img => {
+        if (img) {
+          parts.push({
+            inlineData: {
+              mimeType: mimeType,
+              data: img
+            }
+          });
+        }
+      });
+    } else if (imageBase64) {
+      parts.push({
+        inlineData: {
+          mimeType: mimeType,
+          data: imageBase64
+        }
+      });
+    }
+
     const requestBody = {
       contents: [
         {
-          parts: [
-            {
-              text: "Identify this plant and analyze its health. Respond in Ukrainian language. You MUST return ONLY a valid JSON object matching the following structure (do not wrap in markdown tags like ```json, do not write other explanation, do not write any pre-amble or post-amble):\n{\n  \"plantName\": \"Назва рослини українською (наприклад, Перець Болгарський)\",\n  \"species\": \"Ботанічна назва латиною (наприклад, Capsicum annuum)\",\n  \"healthStatus\": \"Статус здоров'я (наприклад: Пожовтіння листя, Всихання кінчиків, Здорова рослина тощо)\",\n  \"confidence\": 92,\n  \"diagnosis\": \"Аналіз симптомів та можливих причин чому так відбувається\",\n  \"watering\": \"Рекомендації щодо поливу у такому стані\",\n  \"lighting\": \"Рекомендації щодо освітлення\",\n  \"temperature\": \"Рекомендації щодо температурного режиму та вентиляції\",\n  \"soil\": \"Рекомендації щодо структури ґрукту або пересадки\",\n  \"fertilizers\": \"Рекомендації щодо внесення мікроелементів чи добрив\"\n}"
-            },
-            {
-              inlineData: {
-                mimeType: mimeType,
-                data: imageBase64
-              }
-            }
-          ]
+          parts: parts
         }
       ],
       generationConfig: {
@@ -99,7 +115,7 @@ module.exports = async (req, res) => {
       cleanText = cleanText.substring(7);
     }
     if (cleanText.endsWith("```")) {
-      cleanText = cleanText.substring(0, cleanText.length - 3);
+      cleanText = cleanText.substring(0, cleanText.length - 3)
     }
     cleanText = cleanText.trim();
 
