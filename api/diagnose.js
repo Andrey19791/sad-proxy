@@ -48,8 +48,8 @@ module.exports = async (req, res) => {
   const cleanApiKey = apiKey.trim().replace(/^["']|["']$/g, '');
 
   try {
-    // Switched to gemini-2.5-flash which is stable and supported by this key
-    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+    // Switched to gemini-3.6-flash (required for new API keys under Google's deprecation rules)
+    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
 
     const parts = [
       {

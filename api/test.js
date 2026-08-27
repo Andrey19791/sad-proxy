@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
   const cleanApiKey = keyMatch ? keyMatch[0] : apiKey.trim().replace(/^["']|["']$/g, '');
 
   try {
-    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
     const response = await fetch(geminiUrl, {
       method: 'POST',
       headers: {
@@ -36,7 +36,7 @@ module.exports = async (req, res) => {
     if (response.ok) {
       return res.status(200).json({
         status: "success",
-        message: "Proxy connected to Gemini 2.5 Flash successfully!"
+        message: "Proxy connected to Gemini 3.6 Flash successfully!"
       });
     } else {
       const errorText = await response.text();
