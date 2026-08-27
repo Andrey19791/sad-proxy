@@ -48,8 +48,8 @@ module.exports = async (req, res) => {
   const cleanApiKey = apiKey.trim().replace(/^["']|["']$/g, '');
 
   try {
-    // Switched to gemini-3.6-flash as suggested by Google for new projects to avoid 404 deprecation errors
-    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
+    // Switched to gemini-1.5-flash for maximum serving stability and lower 503 error rates
+    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
     const parts = [
       {
@@ -115,7 +115,7 @@ module.exports = async (req, res) => {
       cleanText = cleanText.substring(7);
     }
     if (cleanText.endsWith("```")) {
-      cleanText = cleanText.substring(0, cleanText.length - 3)
+      cleanText = cleanText.substring(0, cleanText.length - 3);
     }
     cleanText = cleanText.trim();
 
