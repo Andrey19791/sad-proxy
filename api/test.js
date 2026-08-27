@@ -21,21 +21,28 @@ module.exports = async (req, res) => {
   const cleanApiKey = keyMatch ? keyMatch[0] : apiKey.trim().replace(/^["']|["']$/g, '');
 
   try {
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${cleanApiKey}`;
-    const response = await fetch(geminiUrl);
+    const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+    const response = await fetch(geminiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': cleanApiKey
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: "Hello! Respond with short OK." }] }]
+      })
+    });
 
     if (response.ok) {
-      const data = await response.json();
-      const modelNames = data.models ? data.models.map(m => m.name) : [];
       return res.status(200).json({
         status: "success",
-        models: modelNames
+        message: "Proxy connected to Gemini 2.5 Flash successfully!"
       });
     } else {
       const errorText = await response.text();
       return res.status(400).json({
         status: "error",
-        message: `Failed to list models: ${errorText}`
+        message: `Gemini API returned error: ${errorText}`
       });
     }
   } catch (error) {
